@@ -1,0 +1,24 @@
+local colorPad = workspace:WaitForChild("ColorPad")
+colorPad:SetAttribute("Touched", false)
+local function changeAtt(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	if colorPad:GetAttribute("Touched") then return end
+	colorPad:SetAttribute("Touched", true)
+	
+	local count = 0
+	while count < 5 do
+		count += 1
+		colorPad.Color = Color3.fromRGB(
+			math.random(0,255),
+			math.random(0,255),
+			math.random(0,255)
+		)
+		task.wait(1)
+	end
+	colorPad.Color = Color3.fromRGB(255, 0, 0)
+	colorPad:SetAttribute("Touched", false)
+end
+
+colorPad.Touched:Connect(changeAtt)
+

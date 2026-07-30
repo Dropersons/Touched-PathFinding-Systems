@@ -1,0 +1,31 @@
+local ColorRoom = workspace:WaitForChild('ColorRoom')
+local pads = ColorRoom:WaitForChild("Pads")
+local trigger = ColorRoom:WaitForChild("Trigger")
+
+trigger:SetAttribute("Running", false)
+
+local colors = {
+	Color3.fromRGB(255, 0, 0),
+	Color3.fromRGB(38, 255, 0),
+	Color3.fromRGB(0, 60, 255),
+	Color3.fromRGB(229, 255, 0),
+}
+	
+local function changeAttribute(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	if trigger:GetAttribute("Touched") then return end
+	local pad = pads:GetChildren()
+	for i, pad in ipairs(pad) do
+		pad.Color = colors[i]
+		task.wait(0.5)
+	end
+	task.wait(2)
+	for _, pad in ipairs(pad) do
+		pad.Color = Color3.fromRGB(255, 255, 255)
+	end
+	
+	trigger:SetAttribute("Running", false)
+end
+
+trigger.Touched:Connect(changeAttribute)

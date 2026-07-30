@@ -1,0 +1,51 @@
+local SpeedSys = workspace:WaitForChild("SpeedSystem")
+local speedPads = SpeedSys:WaitForChild("SpeedPads")
+local normalpad = SpeedSys:WaitForChild("NormalPad")
+
+normalpad:SetAttribute("Normal", false)
+
+local function changeAtt(hit , speedPad)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	
+	local humanoid = hit.Parent:FindFirstChild("Humanoid")
+	if not humanoid then return end
+	
+	
+	if speedPad:GetAttribute("Touched") then return end
+	speedPad:SetAttribute("Touched", true)
+	
+	humanoid.WalkSpeed = 32
+	print(player.Name .. "speed got boosted")
+	
+	task.wait(1)
+	speedPad:SetAttribute("Touched", false)
+end
+
+local function normalPadFunc(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+
+	local humanoid = hit.Parent:FindFirstChild("Humanoid")
+	if not humanoid then return end
+	
+	if normalpad:GetAttribute("Normal") then return end
+	normalpad:SetAttribute("Normal", true)
+
+	humanoid.WalkSpeed = 16
+	print(player.Name .. "got normal speed now")	
+	
+	task.wait(1)
+	
+	normalpad:SetAttribute("Normal", false)
+end
+
+
+for _, speedPad in ipairs(speedPads:GetChildren()) do
+	speedPad:SetAttribute("Touched", false)
+	speedPad.Touched:Connect(function(hit)
+		changeAtt(hit , speedPad)
+	end)
+end
+
+normalpad.Touched:Connect(normalPadFunc)

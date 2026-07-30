@@ -1,0 +1,24 @@
+-- TRANSPARENCY MODULE
+
+local magicPlatform = workspace:WaitForChild("MagicPlatform")
+magicPlatform:SetAttribute("Touched", false)
+
+local function touchAtt(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	if magicPlatform:GetAttribute("Touched") then return end
+	magicPlatform:SetAttribute("Touched", true)	
+	
+	magicPlatform.Transparency = 1
+	magicPlatform.CanCollide = false
+	
+	task.wait(5)
+	
+	magicPlatform:SetAttribute("Touched", false)	
+	magicPlatform.Transparency = 0
+	magicPlatform.CanCollide = true
+
+
+end
+
+magicPlatform.Touched:Connect(touchAtt)

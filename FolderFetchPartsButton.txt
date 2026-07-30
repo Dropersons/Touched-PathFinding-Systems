@@ -1,0 +1,23 @@
+local buttonFolder = workspace:WaitForChild("Buttons")
+
+
+local function changeAttribute(hit , button)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	if button:GetAttribute("Touched") then return end
+	button:SetAttribute("Touched", true)
+	print("Green")
+	button.Color = Color3.fromRGB(47, 255, 0)
+	
+	task.wait(3)
+	print("Red")
+	button:SetAttribute("Touched", false)
+	button.Color = Color3.fromRGB(255, 0, 4)
+end
+
+for _, button in ipairs(buttonFolder:GetDescendants()) do
+	button:SetAttribute("Touched", false)
+	button.Touched:Connect(function(hit)
+		changeAttribute(hit , button)
+	end)
+end

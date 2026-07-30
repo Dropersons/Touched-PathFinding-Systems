@@ -1,0 +1,25 @@
+local LampsFolder = workspace:WaitForChild("Lamps")
+local LampParts = LampsFolder:WaitForChild("LampParts")
+local switch = LampsFolder:WaitForChild("Switch")
+local partCount = 0
+switch:SetAttribute("Running", false)
+
+local function changeAtt(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	if not switch:GetAttribute("Running") then return end
+	switch:SetAttribute("Running", true)
+	for _, part in ipairs(LampParts:GetChildren()) do
+		task.wait(1)
+		part.Color = Color3.fromRGB(255, 238, 0)
+	end
+	
+	task.wait(2)
+	
+	for _, part in ipairs(LampParts:GetChildren()) do
+		part.Color = Color3.fromRGB(255, 255, 255)
+	end
+	switch:SetAttribute("Running", false)
+end
+
+switch.Touched:Connect(changeAtt)

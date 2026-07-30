@@ -1,0 +1,39 @@
+local pp = workspace:WaitForChild("PressurePlates")
+local Pps = pp:WaitForChild("Pps")
+local door = pp:WaitForChild("Door")
+door:SetAttribute("Opened", false)
+local allTouched = false
+
+local function ChangeAttribute(hit , PressurePlate)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	if PressurePlate:GetAttribute("Touched") then return end
+	PressurePlate:SetAttribute("Touched", true)
+	PressurePlate.BrickColor = BrickColor.new("Bright green")
+	
+	allTouched = true
+	
+	for _, currentPlate in ipairs(Pps:GetChildren()) do
+		if not currentPlate:GetAttribute("Touched") then
+			allTouched = false
+			break
+		end
+	end
+	
+	if allTouched and not door:GetAttribute("Opened") then
+		door:SetAttribute("Opened", true)
+		door.Transparency = 1
+		door.CanCollide = false
+	end
+	
+	
+	
+end
+
+for _, PressurePlate in ipairs(Pps:GetChildren()) do
+	PressurePlate:SetAttribute("Touched", false)
+	PressurePlate.Touched:Connect(function(hit)
+		ChangeAttribute(hit, PressurePlate)
+	end)
+end
+

@@ -1,0 +1,35 @@
+local KilLSystemFolder = workspace:WaitForChild("KillSystem")
+local killBricksFolder = KilLSystemFolder:WaitForChild("KillBricks")
+local SafeZone = KilLSystemFolder:WaitForChild("SafeZone")
+SafeZone:SetAttribute("Touched", false)
+
+local function changeAtt(hit , killB)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	
+	local humanoid = hit.Parent:FindFirstChild("Humanoid")
+	if not humanoid then return end 
+	
+	humanoid.Health = 0
+end
+
+local function safeAtt(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	
+	if SafeZone:GetAttribute("Touched") then return end
+	SafeZone:SetAttribute("Touched", true)
+	
+	print(player.Name .. "is safe")
+	task.wait(1)
+	
+	SafeZone:SetAttribute("Touched", false)
+end
+
+for _, killB in ipairs(killBricksFolder:GetChildren()) do
+	killB.Touched:Connect(function(hit)
+		changeAtt(hit , killB)
+	end)
+end
+
+SafeZone.Touched:Connect(safeAtt)
