@@ -1,0 +1,46 @@
+-- Pathfinding System with Jump Action
+
+local pathFindingService = game:GetService("PathfindingService")
+local players = game:GetService("Players")
+local Worm = workspace:WaitForChild("Worm")
+
+local player = players.PlayerAdded:Wait()
+local character = player.Character or player.CharacterAdded:Wait()
+
+local HumanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local wormHRP = Worm:WaitForChild("HumanoidRootPart")
+local wormHumanoid = Worm:WaitForChild("Humanoid")
+
+while true do
+	local path = pathFindingService:CreatePath(
+		{
+			AgentRadius = 5,
+			AgentHeight = 7,
+			AgentCanJump = true,
+			AgentMaxJumpHeight = 7,
+			AgentMaxSlope = 45
+		}
+	)
+
+	path:ComputeAsync(
+		wormHRP.Position,
+		HumanoidRootPart.Position
+	)
+
+	if path.Status == Enum.PathStatus.Success then
+		local wavePoints = path:GetWaypoints()
+
+		for _, wavePoint in ipairs(wavePoints) do
+
+			if wavePoint.Action == Enum.PathWaypointAction.Jump then
+				wormHumanoid.Jump = true
+			end
+
+			wormHumanoid:MoveTo(wavePoint.Position)
+			wormHumanoid.MoveToFinished:Wait()
+		end
+
+	else
+		warn(" WavePoint Failed ")
+	end
+end
