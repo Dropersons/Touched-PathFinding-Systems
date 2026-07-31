@@ -1,0 +1,32 @@
+-- Basic Pathfinding System
+
+local pathFindingService = game:GetService("PathfindingService")
+local players = game:GetService("Players")
+local worm = workspace:WaitForChild("Worm")
+
+local player = players.PlayerAdded:Wait()
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local wormRp = worm:WaitForChild("HumanoidRootPart")
+local wormHumanoid = worm:WaitForChild("Humanoid")
+
+while true do
+	local path = pathFindingService:CreatePath()
+	path:ComputeAsync(
+		wormRp.Position,
+		humanoidRootPart.Position
+	)
+
+	if path.Status == Enum.PathStatus.Success then
+		local wayPoints = path:GetWaypoints()
+
+		for _, wayPoint in ipairs(wayPoints) do
+			wormHumanoid:MoveTo(wayPoint.Position)
+			wormHumanoid.MoveToFinished:Wait()
+		end
+
+	else
+		warn(" Failed ")
+	end
+end
