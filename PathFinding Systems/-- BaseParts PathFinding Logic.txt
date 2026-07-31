@@ -1,0 +1,23 @@
+-- Basic Pathfinding Logic With BaseParts
+
+local worm = workspace:WaitForChild("Worm")
+
+local wormHumanoid = worm:WaitForChild("Humanoid")
+
+local WayPointsFolder = workspace:WaitForChild("WayPointsFolder")
+local wayPoints = WayPointsFolder:GetChildren()
+
+
+table.sort(wayPoints , function(a,b)
+	return a.Name < b.Name
+end)
+
+while true do
+	for _, wayPoint in ipairs(wayPoints) do
+		if wayPoint:IsA("BasePart") then
+			wayPoint.CanCollide = false
+		end
+		wormHumanoid:MoveTo(wayPoint.Position)
+		wormHumanoid.MoveToFinished:Wait()
+	end
+end
