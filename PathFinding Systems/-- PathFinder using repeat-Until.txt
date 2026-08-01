@@ -1,0 +1,30 @@
+-- PathFinder using repeat-Until
+
+local worm = workspace:WaitForChild("Worm")
+local WormHrp = worm:WaitForChild("HumanoidRootPart")
+local wormHumanoid = worm:WaitForChild("Humanoid")
+
+local wayPointsFolder = workspace:WaitForChild("WayPointsFolder")
+local wayPoints = wayPointsFolder:GetChildren()
+
+table.sort(wayPoints , function(a,b)
+	return a.Name < b.Name
+end)
+
+local max_Toll = 3
+
+for _, wayPoint in ipairs(wayPoints) do
+	if wayPoint:IsA("BasePart") then
+		wayPoint.CanCollide = false
+	end
+end
+
+while true do
+	for _, wayPoint in ipairs(wayPoints) do
+		wormHumanoid:MoveTo(wayPoint.Position)
+		
+		repeat
+			task.wait(0.05)
+		until (WormHrp.Position - wayPoint.Position).Magnitude <= 5
+	end
+end
