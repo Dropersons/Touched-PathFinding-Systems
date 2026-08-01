@@ -1,0 +1,63 @@
+-- PathFinder Player Health becomes 0 on touch
+
+local pathFindingService = game:GetService("PathfindingService")
+local players = game:GetService("Players")
+local worm = workspace:WaitForChild("Worm")
+
+local player = players.PlayerAdded:Wait()
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local wormHRP = worm:WaitForChild("HumanoidRootPart")
+local wormHumanoid = worm:WaitForChild("Humanoid")
+
+local path = pathFindingService:CreatePath({
+	AgentRadius = 7,
+	AgentHeight = 10,
+	AgentCanJump = true,
+	AgentMaxJumpHeight = 10,
+	AgentMaxSlope = 45
+})
+
+local function PlayerDeathOnWormTouch(hit)
+	local player = players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	
+	local humanoid = player.Character:FindFirstChild("Humanoid")
+	if not humanoid then return end
+	
+	humanoid.Health = 0
+	print(player.Name .. " Died ")
+end
+
+wormHRP:SetAttribute("Touched" , false)
+wormHRP.Touched:Connect(function(hit)
+	if wormHRP:GetAttribute("Touched") then return end
+	
+	wormHRP:SetAttribute("Touched" , true)
+	PlayerDeathOnWormTouch(hit)
+	
+	task.wait(1)
+	
+	wormHRP:SetAttribute("Touched" , false)
+end)
+
+while true do
+	path:ComputeAsync(
+		wormHRP.Position,
+		humanoidRootPart.Position
+	)
+
+	if path.Status == Enum.PathStatus.Success then
+		local wayPoints = path:GetWaypoints()
+
+		for _, wayPoint in ipairs(wayPoints) do
+			wormHumanoid:MoveTo(wayPoint.Position)
+			wormHumanoid.MoveToFinished:Wait()
+		end
+	else
+		print(" WayPoint Error ")
+	end
+	
+task.wait(0.1)
+end
