@@ -1,0 +1,73 @@
+-- PathFindingService system where is a player enters an area (Invisible dome) the worm starts chasing the player. However, out of bounds system is yet to be scripted.
+
+
+-- Script
+
+local ServerScriptService = game:GetService("ServerScriptService")
+local PathFindingService = ServerScriptService:WaitForChild("PathFindingPractice")
+local PathFidningServiceSystem = require(PathFindingService:WaitForChild("PathFidningServiceSystem"))
+local players = game:GetService("Players")
+local InvisDome = workspace:WaitForChild("InvisDome")
+
+InvisDome.CanCollide = false
+InvisDome:SetAttribute("In" , false)
+while true do
+	local parts = workspace:GetPartBoundsInBox(
+		InvisDome.CFrame,
+		InvisDome.Size
+	)
+	
+	for _, part in ipairs(parts) do
+		local character = part.Parent
+		local player = players:GetPlayerFromCharacter(character)
+		if InvisDome:GetAttribute("In") then return end
+		if player then
+			InvisDome:SetAttribute("In" , true)
+			PathFidningServiceSystem.ChasePlayer(player)
+			print(" Player inside dome ")
+		end
+	end
+task.wait(0.01)
+end
+
+--  PathFidningServiceSystem (Module)
+
+local pathFindingService = game:GetService("PathfindingService")
+local players = game:GetService("Players")
+local worm = workspace:WaitForChild("Worm")
+
+local player = players.PlayerAdded:Wait()
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local wormHRP = worm:WaitForChild("HumanoidRootPart")
+local wormhumanoid = worm:WaitForChild("Humanoid")
+
+local PathFidningServiceSystem = {}
+function PathFidningServiceSystem.ChasePlayer()
+	local path = pathFindingService:CreatePath()
+	while true do
+		path:ComputeAsync(
+			wormHRP.Position,
+			humanoidRootPart.Position
+		)
+
+		local max_toll = 5
+
+
+		if path.Status == Enum.PathStatus.Success then
+			local wayPoints = path:GetWaypoints()
+
+			for _, wayPoint in ipairs(wayPoints) do
+				wormhumanoid:MoveTo(wayPoint.Position)
+
+				repeat
+					task.wait(0.001)
+				until (wormHRP.Position - wayPoint.Position).Magnitude <= max_toll
+			end
+		end
+	end
+end
+
+
+return PathFidningServiceSystem
