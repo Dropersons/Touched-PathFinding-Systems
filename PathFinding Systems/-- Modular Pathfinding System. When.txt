@@ -1,0 +1,91 @@
+-- Modular Pathfinding System. When a player enters the dome, the worm chased the player.
+
+-- Script
+
+local ServerScriptService = game:GetService("ServerScriptService")
+local PathFindingPractice = ServerScriptService:WaitForChild("PathFindingPractice")
+local PathFidningServiceSystem = require(PathFindingPractice:WaitForChild("PathFidningServiceSystem"))
+local checkBounds = require(PathFindingPractice:WaitForChild("CheckBounds"))
+
+checkBounds.Properties()
+
+while true do
+	local inbound = checkBounds.InBound()
+	
+	if inbound then
+		PathFidningServiceSystem.ChasePlayer()
+		break
+	end
+	task.wait(0.1)
+end
+
+-- CheckBounds
+
+local players = game:GetService("Players")
+local InvisDome = workspace:WaitForChild("InvisDome")
+local CheckBounds = {}
+
+function CheckBounds.Properties()
+	InvisDome.CanCollide = false
+end
+
+function CheckBounds.InBound()
+	local parts = workspace:GetPartBoundsInBox(
+		InvisDome.CFrame,
+		InvisDome.Size
+	)
+	
+	for _, part in ipairs(parts) do
+		local character = part.Parent
+		local player = players:GetPlayerFromCharacter(character)
+		
+		if player then
+			return true
+		end
+	end
+	return false
+end
+
+return CheckBounds
+
+-- PathFindingServiceSystem
+
+local pathFindingService = game:GetService("PathfindingService")
+local players = game:GetService("Players")
+local worm = workspace:WaitForChild("Worm")
+
+local player = players.PlayerAdded:Wait()
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local wormHRP = worm:WaitForChild("HumanoidRootPart")
+local wormhumanoid = worm:WaitForChild("Humanoid")
+
+local PathFidningServiceSystem = {}
+function PathFidningServiceSystem.ChasePlayer()
+	while true do
+		local path = pathFindingService:CreatePath()
+		path:ComputeAsync(
+			wormHRP.Position,
+			humanoidRootPart.Position
+		)
+
+		local max_toll = 5
+
+
+		if path.Status == Enum.PathStatus.Success then
+			local wayPoints = path:GetWaypoints()
+
+			for _, wayPoint in ipairs(wayPoints) do
+				wormhumanoid:MoveTo(wayPoint.Position)
+
+				repeat
+					task.wait(0.001)
+				until (wormHRP.Position - wayPoint.Position).Magnitude <= max_toll
+			end
+		end
+	end
+end
+
+
+return PathFidningServiceSystem
