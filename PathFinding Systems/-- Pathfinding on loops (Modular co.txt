@@ -1,0 +1,132 @@
+-- Pathfinding on loops (Modular construction). Player death on enemy hit
+
+-- Server 
+
+(Services and modules)
+local ServerScriptService = game:GetService("ServerScriptService")
+local PathFindingPractice = ServerScriptService:WaitForChild("PathFindingPractice")
+local PathFindingSystem = require(PathFindingPractice:WaitForChild("PathFindingSystem"))
+local BoundChecker = require(PathFindingPractice:WaitForChild("BoundChecker"))
+
+(Players fetch)
+local players = game:GetService("Players")
+
+(Models and hrp's)
+local worm = workspace:WaitForChild("Worm")
+local wormHRP = worm:WaitForChild("HumanoidRootPart")
+
+BoundChecker.Properties()
+
+local function DeathOnTouch(hit)
+	local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+	if not player then return end
+	
+	local humanoid = player.Character:FindFirstChild("Humanoid")
+	humanoid.Health = 0
+	
+	print(player.Name .. " died ")
+end
+
+wormHRP:SetAttribute("Touched" , false)
+wormHRP.Touched:Connect(function(hit)
+	if wormHRP:GetAttribute("Touched") then return end
+	wormHRP:SetAttribute("Touched" , true)
+	DeathOnTouch(hit)
+	
+	task.wait(0.1)
+	wormHRP:SetAttribute("Touched" , false)
+end)
+
+while true do
+	if BoundChecker.InBound() then
+		print(" In bound ")
+		PathFindingSystem.ChasePlayer()
+		print(" Chasing ")
+	end	
+	task.wait(0.1)
+end
+
+-- BoundChecker
+
+local InvisDome = workspace:WaitForChild("InvisDome")
+local players = game:GetService("Players")
+local BoundChecker = {}
+
+function BoundChecker.Properties()
+	InvisDome.CanCollide = false
+end
+
+function BoundChecker.InBound()
+	local path = workspace:GetPartBoundsInBox(
+		InvisDome.CFrame,
+		InvisDome.Size
+	)
+	
+	for _, part in ipairs(path) do
+		local character = part.Parent
+		local player = players:GetPlayerFromCharacter(character)
+		
+		if player then
+			return player
+		end
+	end
+	return false
+end
+
+return BoundChecker
+
+-- PathFindingSystem
+
+local pathFindingService = game:GetService("PathfindingService")
+local serverScriptService = game:GetService("ServerScriptService")
+local PathFindingPractice = serverScriptService:WaitForChild("PathFindingPractice")
+local BoundChecker = require(PathFindingPractice:WaitForChild("BoundChecker"))
+local players = game:GetService("Players")
+local worm = workspace:WaitForChild("Worm")
+
+local PathFindingSystem = {}
+function PathFindingSystem.ChasePlayer()
+	local wormHRP = worm:WaitForChild("HumanoidRootPart")
+	local wormHumanoid = worm:WaitForChild("Humanoid")
+	
+	local wayPointsFolder = workspace:WaitForChild("WayPoints")
+	local wayPoints = wayPointsFolder:GetChildren()
+	
+	local player = BoundChecker.InBound()
+	if not player then return end
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+	
+	local maxToll = 5
+	
+	table.sort(wayPoints , function(a,b)
+		return a.Name > b.Name
+	end)
+	
+	for _, wayPoint in ipairs(wayPoints) do
+		if wayPoint:IsA("BasePart") then
+			wayPoint.CanCollide = false
+		end
+	end
+	
+	while true do
+		for _, wayPoint in ipairs(wayPoints) do
+			wormHumanoid:MoveTo(wayPoint.Position)
+
+			repeat
+				task.wait(0.1)
+			until (wormHRP.Position - wayPoint.Position).Magnitude <= maxToll
+		end
+
+		for i = #wayPoints , 1 , -1 do
+			local wayPoint = wayPoints[i]
+			
+			wormHumanoid:MoveTo(wayPoint.Position)
+			
+			repeat
+				task.wait(0.1)
+			until (wormHRP.Position - wayPoint.Position).Magnitude <= maxToll
+		end
+	end	
+end
+return PathFindingSystem
