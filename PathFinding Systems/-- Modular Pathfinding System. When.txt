@@ -1,4 +1,4 @@
--- Modular Pathfinding System. When a player enters the dome, the worm chased the player.
+-- Modular Pathfinding System. When a player enters the dome, the worm chases the player.
 
 -- Script
 
