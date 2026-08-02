@@ -1,0 +1,35 @@
+Gemetry system (Finding area with shoelace formula)
+
+local DistanceMeasureMechanics = {}
+function DistanceMeasureMechanics.SetTable()
+	local areaVec = workspace:WaitForChild("AreaVec")
+	
+	local AreaPoints = {
+		areaVec:WaitForChild("Point1"),
+		areaVec:WaitForChild("Point2"),
+		areaVec:WaitForChild("Point3"),
+		areaVec:WaitForChild("Point4")
+	}
+	
+	return AreaPoints
+end
+
+function DistanceMeasureMechanics.CalculateArea(pointsTable)
+	local p1 = pointsTable[1].Positio
+	local p2 = pointsTable[2].Position
+	local p3 = pointsTable[3].Position
+	local p4 = pointsTable[4].Position
+	
+	local x1 , z1 = p1.X , p1.Z
+	local x2 , z2 = p2.X , p2.Z
+	local x3 , z3 = p3.X , p3.Z
+	local x4 , z4 = p4.X , p4.Z
+	
+	local sum1 =  (x1*z2) + (x2*z3) + (x3*z4) + (x4*z1)
+	local sum2 =  (z1*x2) + (z2*x3) + (z3*x4) + (z4*x1)
+	
+	local total_area = math.abs(sum1 - sum2)/2
+	return total_area
+end
+
+return DistanceMeasureMechanics
