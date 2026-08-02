@@ -1,4 +1,4 @@
--- PathFindingService system where is a player enters an area (Invisible dome) the worm starts chasing the player. However, out of bounds system is yet to be scripted.
+-- PathFindingService system where when a player enters an area (Invisible dome) the worm starts chasing the player. However, out of bounds system is yet to be scripted.
 
 
 -- Script
