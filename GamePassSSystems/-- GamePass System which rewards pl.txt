@@ -1,0 +1,185 @@
+-- GamePass System which rewards player depending on specificID passed as a parameter and fired to server.
+
+-- Config (GamePassCashConfig)
+
+local GamePassCashConfig = {
+	Buy1KCash  = {
+		amount = 1000
+	},
+	Buy5KCash = {
+		amount = 5000
+	},
+	Buy10KCash = {
+		amount = 10000
+	}
+	
+}
+return GamePassCashConfig
+
+-- PlayerCashService (module)
+
+local serverScriptService = game:GetService("ServerScriptService")
+local gameTest = serverScriptService:WaitForChild("GameTest")
+local Config = gameTest:WaitForChild("Config")
+local gamePassCashConfig = require(Config:WaitForChild("GamePassCashConfig"))
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local remotes = replicatedStorage:WaitForChild("Remotes")
+local CashUpdate = remotes:WaitForChild("CashUpDs")
+
+local PlayerCashService = {}
+local playerCash = {}
+
+function PlayerCashService.SetUp(player)
+	if playerCash[player] == nil then
+		playerCash[player] = 100
+		CashUpdate:FireClient(player , playerCash[player])
+	end
+end
+
+function PlayerCashService.GiveCashOnPass(player , itemname)
+	playerCash[player] += gamePassCashConfig[itemname].amount
+	CashUpdate:FireClient(player , playerCash[player])
+end
+
+function PlayerCashService.FetchCash(player)
+	CashUpdate:FireClient(player , playerCash[player])
+	return playerCash[player]
+end
+
+function PlayerCashService.SetDown(player)
+	playerCash[player] = nil
+end
+
+return PlayerCashService
+
+-- Script
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local marketPlaceServices = game:GetService("MarketplaceService")
+
+local remotes = replicatedStorage:WaitForChild("Remotes")
+local BuyPass = remotes:WaitForChild("BuyPass")
+local cashUpdate = remotes:WaitForChild("CashUpDs")
+
+local GameTest = ServerScriptService:WaitForChild("GameTest")
+local Config = GameTest:WaitForChild("Config")
+local PlayerServices = GameTest:WaitForChild("PlayerServices")
+
+local GamePassCashConifg = require(Config:WaitForChild("GamePassCashConfig"))
+local PlayerCashService = require(PlayerServices:WaitForChild("PlayerCashService"))
+local GiveTool = require(GameTest:WaitForChild("GiveTool"))
+local GamePassSystem = require(GameTest:WaitForChild("GamePassSystem"))
+local ShopItemConfig = require(GameTest:WaitForChild("ShopItemConfig"))
+
+local players = game:GetService("Players")
+
+players.PlayerAdded:Connect(function(player)
+	PlayerCashService.SetUp(player)
+end)
+
+BuyPass.OnServerEvent:Connect(function(player , SpecificID , itemname)
+	GamePassSystem.Prompt(player , SpecificID)
+end)
+
+marketPlaceServices.PromptGamePassPurchaseFinished:Connect(function(player , specificId , wasPurchased)
+	if wasPurchased then
+		if specificId == 1840172665 then
+			GiveTool.GiveSpeedCoil(player)
+			
+		elseif specificId == 1841078487 then
+			GiveTool.JumpCoil(player)
+			
+		elseif specificId == 1840124636 then
+			PlayerCashService.GiveCashOnPass(player , "Buy1KCash")
+		
+		elseif specificId == 1839752705 then
+			PlayerCashService.GiveCashOnPass(player , "Buy5KCash")
+		end
+	end
+end)
+
+players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(character)
+		local hasSpeedCoil = GamePassSystem.HasPass(player , 1840172665)
+		local hasJumpCoil = GamePassSystem.HasPass(player , 1841078487)
+
+		if hasSpeedCoil then
+			GiveTool.GiveSpeedCoil(player)
+		end
+
+		if hasJumpCoil then
+			GiveTool.JumpCoil(player)
+		end
+
+	end)
+end)
+
+players.PlayerRemoving:Connect(function(player)
+	PlayerCashService.SetDown(player)
+end)
+
+-- GamePassSystem
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remotes = ReplicatedStorage:WaitForChild("Remotes")
+local BuyPass = remotes:WaitForChild("BuyPass")
+
+local marketPlaceServices = game:GetService("MarketplaceService")
+local GamePassSystem = {}
+
+function GamePassSystem.Prompt(player , specificId)
+	marketPlaceServices:PromptGamePassPurchase(player , specificId)
+end
+
+function GamePassSystem.HasPass(player , specificId)
+	return marketPlaceServices:UserOwnsGamePassAsync(player.UserId , specificId)
+end
+
+return GamePassSystem
+
+-- GiveTool
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local SpeedCoil = replicatedStorage:WaitForChild("SpeedCoil")
+local JumpCoil = replicatedStorage:WaitForChild("JumpCoil")
+
+local GiveTool = {}
+
+function GiveTool.GiveSpeedCoil(player)
+	if player.Backpack:FindFirstChild("SpeedCoil") or (player.Character and player.Character:FindFirstChild("SpeedCoil")) then
+		return
+	end
+	local Speedclone = SpeedCoil:Clone()
+	print("speed coil")
+	Speedclone.Grip = CFrame.new(0,1,1) * CFrame.Angles(0,0,math.rad(90))
+	Speedclone.Parent = player.Backpack
+end
+
+function GiveTool.JumpCoil(player)
+	if player.Backpack:FindFirstChild("JumpCoil") or (player.Character and player.Character:FindFirstChild("JumpCoil")) then
+		return
+	end
+	local Jumpclone = JumpCoil:Clone()
+	print("jump coil")
+	Jumpclone.Grip = CFrame.new(0,1,1) * CFrame.Angles(0,0,math.rad(90))
+	Jumpclone.Parent = player.Backpack
+end
+
+return GiveTool
+
+-- ShopItemConfig 
+
+local ShopItemConfig = {
+	speedCoil = {
+		inventory = false
+	},
+	
+	jumpCoil = {
+		inventory = false
+	}
+}
+
+return ShopItemConfig
+
