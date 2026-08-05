@@ -1,4 +1,4 @@
-Gemetry system (Finding area with shoelace formula)
+Geometry system (Finding area with shoelace formula)
 
 local DistanceMeasureMechanics = {}
 function DistanceMeasureMechanics.SetTable()
