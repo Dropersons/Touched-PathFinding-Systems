@@ -1,0 +1,132 @@
+-- Flying Carpet mechanism
+
+-- Local script (Inside tool, inside starterPack)
+
+local tool = script.Parent
+local player = game.Players.LocalPlayer
+local replaictedStorage = game:GetService('ReplicatedStorage')
+local remote = replaictedStorage.Remotes.FlyCarpet
+local runService = game:GetService("RunService")
+local uis = game:GetService("UserInputService")
+
+local keys = {
+	W = false,
+	A = false,
+	S = false,
+	D = false,
+	Space = false,
+	LeftShift = false
+}
+
+local renderService
+
+uis.InputBegan:Connect(function(input , gp)
+	if gp then return end
+	
+	if input.KeyCode == Enum.KeyCode.W then keys.W = true end
+	if input.KeyCode == Enum.KeyCode.A then keys.A = true end
+	if input.KeyCode == Enum.KeyCode.S then keys.S = true end
+	if input.KeyCode == Enum.KeyCode.D then keys.D = true end
+	if input.KeyCode == Enum.KeyCode.Space then keys.Space = true end
+	if input.KeyCode == Enum.KeyCode.LeftShift then keys.LeftShift = true end
+end)
+
+uis.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.W then keys.W = false end
+	if input.KeyCode == Enum.KeyCode.A then keys.A = false end
+	if input.KeyCode == Enum.KeyCode.S then keys.S = false end
+	if input.KeyCode == Enum.KeyCode.D then keys.D = false end
+	if input.KeyCode == Enum.KeyCode.Space then keys.Space = false end
+	if input.KeyCode == Enum.KeyCode.LeftShift then keys.LeftShift = false end
+end)
+
+tool.Equipped:Connect(function()
+	renderService = runService.RenderStepped:Connect(function()
+		remote:FireServer(keys)
+	end)
+end)
+
+tool.Unequipped:Connect(function()
+	if renderService then
+		renderService:Disconnect()
+		renderService = nil
+	end
+end)
+
+for key in pairs(keys) do
+	keys[key] = false
+end
+
+-- ServerScript
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local remote = replicatedStorage.Remotes:WaitForChild("FlyCarpet")
+
+local SPEED = 30
+local UP_SPEED = 60
+
+remote.OnServerEvent:Connect(function(player , keys)
+	
+	local character = player.Character
+	if not character then return end
+	
+	local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+	if not humanoidRootPart then return end
+	
+	local tool = character:FindFirstChildOfClass("Tool")
+	if not tool then return end
+	
+	local carpet = tool:FindFirstChild("Handle")
+	if not carpet then return end
+	
+	local attachment = carpet:FindFirstChild("Attachment")
+	if not attachment then
+		attachment = Instance.new("Attachment")
+		attachment.Parent = carpet
+	end
+	
+	local linearVelocity = carpet:FindFirstChild("LinearVelocity")
+	if not linearVelocity then
+		linearVelocity = Instance.new("LinearVelocity")
+		linearVelocity.Attachment0 = attachment
+		linearVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
+		linearVelocity.ForceLimitsEnabled = false
+		linearVelocity.Parent = carpet
+	end
+	
+	local direction = Vector3.new(0,0,0)
+	
+	if keys.W  then
+		direction += humanoidRootPart.CFrame.LookVector
+	end
+	
+	if keys.S then
+		direction -= humanoidRootPart.CFrame.LookVector
+	end
+	
+	if keys.A  then
+		direction -= humanoidRootPart.CFrame.RightVector
+	end
+	
+	if keys.D  then
+		direction += humanoidRootPart.CFrame.RightVector
+	end
+	
+	if keys.Space then
+		direction += Vector3.new(0,1,0)
+	end
+	
+	if keys.LeftShift  then
+		direction -= Vector3.new(0,1,0)
+	end
+	
+	if direction.Magnitude > 0 then
+		direction = direction.Unit
+	end
+	
+	linearVelocity.VectorVelocity = Vector3.new(
+		direction.X * SPEED,
+		direction.Y * UP_SPEED,
+		direction.Z * SPEED
+	)
+end)
