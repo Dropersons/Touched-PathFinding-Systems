@@ -1,0 +1,78 @@
+-- Movement of part using userInputService and with heartbeat for smooth motion
+
+-- Server
+
+local runService = game:GetService("RunService")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local remotes = replicatedStorage:WaitForChild("Remotes")
+local FlyRemote = remotes:WaitForChild("FlyCarpet")
+
+local testPart = workspace:WaitForChild("MoveTestPart")
+
+local attachment = Instance.new("Attachment")
+attachment.Parent = testPart
+
+local linearVelocity = Instance.new("LinearVelocity")
+linearVelocity.Attachment0 = attachment
+linearVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
+linearVelocity.ForceLimitsEnabled = false
+linearVelocity.Parent = testPart
+
+local ACCELERATION = 0.2
+local DECELERATION = 0.2
+
+local currentVelocity = Vector3.zero
+local targetVelocity = Vector3.zero
+
+FlyRemote.OnServerEvent:Connect(function(player , keys)
+	if keys.G then
+		targetVelocity = Vector3.new(0,-5,0)
+		
+	elseif keys.F then
+		targetVelocity = Vector3.new(0,5,0)
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if targetVelocity.Magnitude > 0 then
+		currentVelocity = currentVelocity:Lerp(targetVelocity , ACCELERATION)
+		
+	else
+		currentVelocity = currentVelocity:Lerp(targetVelocity , DECELERATION)
+	end
+	
+	linearVelocity.VectorVelocity = currentVelocity
+end)
+
+
+-- local script (In starterplayerscripts)
+
+local remote = game.ReplicatedStorage.Remotes.FlyCarpet
+local uis = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
+
+local keys = {
+	F = false,
+	G = false
+}
+
+local renderService
+
+uis.InputBegan:Connect(function(input , gp)
+	if gp then return end
+	
+	if input.KeyCode == Enum.KeyCode.F then keys.F = true end
+	if input.KeyCode == Enum.KeyCode.G then keys.G = true end
+end)
+
+uis.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.F then keys.F = false end
+	if input.KeyCode == Enum.KeyCode.G then keys.G = false end
+end)
+
+renderService = runService.RenderStepped:Connect(function()
+	remote:FireServer(keys)
+end)
+
+
+
