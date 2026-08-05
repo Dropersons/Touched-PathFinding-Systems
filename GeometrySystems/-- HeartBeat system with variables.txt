@@ -1,0 +1,31 @@
+-- HeartBeat system with variables of acceleration and deceleration
+
+local runService = game:GetService("RunService")
+local TestPart = workspace:WaitForChild("MoveTestPart")
+
+local attachment = Instance.new("Attachment")
+attachment.Parent = TestPart
+
+local linearVelocity = Instance.new("LinearVelocity")
+linearVelocity.Attachment0 = attachment
+linearVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
+linearVelocity.ForceLimitsEnabled = false
+linearVelocity.Parent = TestPart
+
+local ACCELERATION = 0.2
+local DECELERATION = 0.5
+
+local currentVelocity = Vector3.new(0,0,0)
+local targetVelocity = Vector3.new(0,5,0)
+
+runService.Heartbeat:Connect(function()
+	if targetVelocity.Magnitude > 0 then
+		currentVelocity = currentVelocity:Lerp(targetVelocity , ACCELERATION)
+		
+	else
+		currentVelocity = currentVelocity:Lerp(targetVelocity , DECELERATION)
+	end
+	
+	linearVelocity.VectorVelocity = currentVelocity
+end)
+
