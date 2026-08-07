@@ -62,6 +62,12 @@ flyCarpet.OnServerEvent:Connect(function(player , buttonName)
 		
 	elseif buttonName == "Up" then
 		targetVelocity = Vector3.new(0,5,0)
+		
+	elseif buttonName == "Left" then
+		targetVelocity = Vector3.new(5,0,0)
+		
+	elseif buttonName == "Right" then
+		targetVelocity = Vector3.new(-5,0,0)
 	end
 end)
 
@@ -75,6 +81,10 @@ runService.Heartbeat:Connect(function()
 	
 	linerVelocity.VectorVelocity = currentVelocity
 end)
+
+
+
+
 
 
 
