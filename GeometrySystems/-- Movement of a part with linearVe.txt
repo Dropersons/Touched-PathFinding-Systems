@@ -1,0 +1,80 @@
+-- Movement of a part with linearVelocity and runService integrated with Ui imageButton name fire
+
+-- Local Script
+
+local remote = game.ReplicatedStorage.Remotes.FlyCarpet
+local gui = script.Parent
+local ControllerFrame = gui:WaitForChild("ControllerFrame")
+local buttons = ControllerFrame:GetChildren()
+
+local function checkButton(button)
+	if button.Name == "Up" then
+		print(button.Name)
+		remote:FireServer(button.Name)
+
+	elseif (button.Name == "Down") then
+		remote:FireServer(button.Name)
+
+	elseif (button.Name == "Left") then
+		remote:FireServer(button.Name)
+
+	elseif (button.Name == "Right") then
+		remote:FireServer(button.Name)
+	end
+end
+
+for _, button in ipairs(buttons) do
+	if button:IsA("ImageButton") then
+		button.MouseButton1Click:Connect(function()
+			checkButton(button)
+		end)
+	end
+end
+
+-- Server Script
+
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local remotes = replicatedStorage:WaitForChild("Remotes")
+local flyCarpet = remotes:WaitForChild("FlyCarpet")
+local runService = game:GetService("RunService")
+
+local testPart = workspace:WaitForChild("MoveTestPart")
+
+local attachment = Instance.new("Attachment")
+attachment.Parent = testPart
+
+local linerVelocity = Instance.new("LinearVelocity")
+linerVelocity.Attachment0 = attachment
+linerVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
+linerVelocity.ForceLimitsEnabled = false
+linerVelocity.Parent = testPart
+
+local ACCELERATION = 0.5
+local DECELERATION = 0.2
+
+local targetVelocity = Vector3.zero
+local currentVelocity = Vector3.zero
+
+
+flyCarpet.OnServerEvent:Connect(function(player , buttonName)
+	if buttonName == "Down" then
+		targetVelocity = Vector3.new(0,-5,0)
+		
+	elseif buttonName == "Up" then
+		targetVelocity = Vector3.new(0,5,0)
+	end
+end)
+
+runService.Heartbeat:Connect(function()
+	if targetVelocity.Magnitude > 0 then
+		currentVelocity = currentVelocity:Lerp(targetVelocity , ACCELERATION)
+		
+	else
+		currentVelocity = currentVelocity:Lerp(targetVelocity , DECELERATION)
+	end
+	
+	linerVelocity.VectorVelocity = currentVelocity
+end)
+
+
+
